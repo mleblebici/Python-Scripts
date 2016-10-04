@@ -1,6 +1,22 @@
 #!/usr/bin/env python
 import sys
 import time
+import argparse
+import os
+
+# Argument Parser for arguments -l -k -m -f
+parser = argparse.ArgumentParser(description = 'Performs Vigenere decryption', usage = 'Usage: ./vigenereDecrypt.py -f filename [-l keyLength] [-k key] [-m maxKeyLength]', prog = 'vigenereDecrypt.py')
+
+parser.add_argument('-f', '--filename', dest = 'fileName', required = True, help = 'name of the file which contains encrypted text')
+
+parser.add_argument('-l', '--keyLength', dest = 'keyLength', type = int, help = "length of the encryption key", default = 0)
+
+parser.add_argument('-k', '--key', dest = 'key', help = "the key to be used in decryption", default = "")
+
+parser.add_argument('-m', '--maxKeyLength', dest = 'maxKeyLength', help = "maximum key length to be used during decryption", type = int, default = 30)
+
+args = parser.parse_args()
+
 
 alphabet = [0.08167, 0.01492, 0.02782, 0.04253, 0.12702, 0.02228, 0.02015, 0.06094, 0.06966, 0.00153, 0.00772, 0.04025, 0.02406, 0.06749, 0.07507, 0.01929, 0.00095, 0.05987, 0.06327, 0.09056, 0.02758, 0.00978, 0.02360, 0.00150, 0.01974, 0.00074]
 
@@ -97,6 +113,7 @@ def decrypt(numbers, text):
 	
 	for i in range(0, len(text)):
 		index = ord(text[i]) + numbers[i%keyLength];
+		
 		if(index > 122):
 			index = index - 26
 		decryptedText = decryptedText + chr(index)
@@ -113,38 +130,17 @@ def addNonletterChars(decryptedText, originalText):
 	return decryptedText
 
 ########################################################################################
+# Arguments taken
+key = args.key
+maxKeyLength = args.maxKeyLength
+keyLength = args.keyLength
+fileName = args.fileName
 
-# print usage information
-#if(len(sys.argv) < 2):
-#	print("Usage: ./vigenereDecrypt.py -f filename [-l keyLength] [-k key] [-m maxKeyLength]")
-#	sys.exit()
-fileName = ""
-keyLength = 0
-maxKeyLength = 30
-key = ""
-helpString = "General Information:\n\tThis tool is written by Mehmet LEBLEBICI to decrypt texts encrypted with Vigenere algorithm."
-helpString = helpString + "\n\nUsage: \n./vigenereDecrypt.py -f filename [-l keyLength] [-k key] [-m maxKeyLength]"
-helpString = helpString + "\n\t -f: This parameter provides the name of the file which includes encrypted text. This is a requisite parameter."
-helpString = helpString + "\n\t -l: This parameter provides key length to be used during decryption. If a specific key is provided, this parameter will be overwritten accordingly."
-helpString = helpString + "\n\t -k: This parameter provides key to be used during decryption."
-helpString = helpString + "\n\t -m: This parameter provides maximum key length to be used during decryption. Default is 30."
 
-#check program arguments
-for i in range(0, len(sys.argv)):
-	if(sys.argv[i] == "-f"):
-		fileName = str(sys.argv[i + 1])
-	elif(sys.argv[i] == "-k"):
-		key = str(sys.argv[i + 1])
-		keyLength = len(key)
-	elif(sys.argv[i] == "-m"):
-		maxKeyLength = int(sys.argv[i + 1])
-	elif(sys.argv[i] == "-l"):
-		keyLength = int(sys.argv[i + 1])
-	elif(sys.argv[i] == "-h"):
-		print(helpString)
-		sys.exit()
+if(key != ""):
+	keyLength = len(key)
 
-# Print information on execution
+# Print information about execution
 print("Encrypted text will be read from " + fileName)
 time.sleep(0.4)
 if(key != ""):
@@ -154,14 +150,12 @@ else:
 		print("Only keys that are " + str(keyLength) + " characters long will be used..")
 	if(maxKeyLength != 30):
 		print("Decryption will be done using maximum key length of " + str(maxKeyLength))
- 
-		
-# Critical checks, ignoring user mistakes or malicious user input
-if(fileName == ""):
-	print("You need to specify a file name!")
-	sys.exit()
 
-# reading encrypted text from file
+if(not os.path.isfile(fileName)):
+	print(str(fileName) + " does not exists on the system.")
+	sys.exit()
+		
+# Reading encrypted text from file
 with open(fileName) as f:
 	originalText = f.readlines()
 originalText = originalText[0]
@@ -170,7 +164,7 @@ time.sleep(1.3)
 print("")
 print(originalText)
 
-# removing non-letter characters
+# Removing non-letter characters
 text = originalText
 i = 0
 while(i < len(text)):
@@ -180,7 +174,9 @@ while(i < len(text)):
 		text = text.replace(text[i], "")
 		i = i - 1
 	i  = i + 1
-#check if key is provided or not
+
+
+# Check if key is provided or not
 numbers = []
 decryptedText = ""
 if(key == ""):
@@ -192,11 +188,8 @@ if(key == ""):
 	decryptedText = decrypt(numbers, text)
 else:
 	numbers = []
-	print("++++++: " + key)
 	for letter in key:
 		numbers.append(letters.index(letter))
-		print("* " + letter + " : " + str(letters.index(letter)))
-	
 	decryptedText = decrypt(numbers, text)
 result = addNonletterChars(decryptedText, originalText)	
 print("")
@@ -204,4 +197,3 @@ print("Decrypted text is as follows...")
 time.sleep(1.3)
 print("")
 print(result)
-
